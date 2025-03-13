@@ -2,66 +2,112 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>IoT project</title>
+  <title>Monitoreo del Clima - IoT Project</title>
   <style>
-    
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
+      background-color: #e0f7fa;
+      color: #333;
     }
 
     h1 {
       text-align: center;
       margin-top: 20px;
-      font-size: 2em;
+      font-size: 3em;
+      color: #00796b;
     }
 
     .dashboard-container {
       display: grid;
       grid-template-columns: repeat(2, 1fr); /* 2 columnas */
-      gap: 20px; /* espacio entre los cuadrados */
+      gap: 20px;
       max-width: 1200px;
-      margin: 20px auto;
+      margin: 40px auto;
       padding: 0 10px;
     }
 
     .dashboard-square {
-      background-color: #f9f9f9;
-      border: 2px solid #ccc;
-      border-radius: 4px;
-      min-height: 200px; /* altura mínima para cada cuadrado */
+      background-color: #ffffff;
+      border: 2px solid #00796b;
+      border-radius: 8px;
+      min-height: 200px;
       display: flex;
       justify-content: center;
       align-items: center;
       font-weight: bold;
+      font-size: 1.5em;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .dashboard-square h3 {
+      margin: 0;
+      color: #00796b;
+    }
+
+    footer {
+      background-color: #00796b;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      position: relative;
+      width: 100%;
+    }
+
+    footer p {
+      margin: 0;
       font-size: 1.2em;
+    }
+
+    /* Responsiveness for smaller screens */
+    @media (max-width: 768px) {
+      .dashboard-container {
+        grid-template-columns: 1fr;
+      }
     }
 
   </style>
 </head>
 <body>
-  <h1>IoT project</h1>
+  <h1>Monitoreo del Clima - IoT Project</h1>
   
   <div class="dashboard-container">
     <!-- Cuadrado 1 -->
     <div class="dashboard-square">
-      Cuadro 1
+      <div>
+        <h3>Temperatura</h3>
+        <p>22°C</p>
+      </div>
     </div>
 
     <!-- Cuadrado 2 -->
     <div class="dashboard-square">
-      Cuadro 2
+      <div>
+        <h3>Humedad</h3>
+        <p>60%</p>
+      </div>
     </div>
 
     <!-- Cuadrado 3 -->
     <div class="dashboard-square">
-      Cuadro 3
+      <div>
+        <h3>Velocidad del Viento</h3>
+        <p>15 km/h</p>
+      </div>
     </div>
 
     <!-- Cuadrado 4 -->
     <div class="dashboard-square">
-      Cuadro 4
+      <div>
+        <h3>Condiciones</h3>
+        <p>Despejado</p>
+      </div>
     </div>
   </div>
+
+  <!-- Footer -->
+  <footer>
+    <p>Autores: Alan Mendoza, Diego, Ariel, Sergio, Fani</p>
+  </footer>
 </body>
 </html>
