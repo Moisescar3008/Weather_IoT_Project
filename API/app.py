@@ -13,11 +13,12 @@ def home():
     # ===== Obtencion de datos
     data = Endpoint_ESP32()
     data = data.get()[0]['data']
+    print(f"\n\n{data}\n\n")
     
-    temp = data['temperature']
-    rain = data['rain']
-    moti = data['motion']
-    pres = data['pressure']
+    temp = data.get('temperature',None)
+    rain = data.get('rain',None)
+    moti = data.get('motion',None)
+    pres = data.get('pressure',None)
 
 
     return render_template(
