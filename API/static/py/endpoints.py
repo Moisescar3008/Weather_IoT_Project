@@ -59,19 +59,22 @@ class Endpoint_ESP32(Resource):
 
     def get(self):
         try:
+            # ===== Validacion de datos
+            data = dict(request.json)
+            
+            # ===== Obtencion de valores
+            table = data.get('table',None)
+            if not(table): tables = ['rain','temperature','motion','pressure']
+            else:          tables = [table,]
+
             # ===== Consulta BD
-            rain_data = db.fetch_all("SELECT * FROM rain;")
-            temperature_data = db.fetch_all("SELECT * FROM temperature;")
-            motion_data = db.fetch_all("SELECT * FROM motion;")
-            pressure_data = db.fetch_all("SELECT * FROM pressure;")
+            result = {}
+            for table in tables:
+                fetch = db.fetch_all(f"SELECT * FROM {table};")
+                result[table] = fetch                
 
             # ===== Confirmación
-            return {"status":"fetched!","data":{
-                "rain":rain_data,
-                "temperature":temperature_data,
-                "motion":motion_data,
-                "pressure":pressure_data,
-            }}, 200
+            return {"status":"fetched!","data":result}, 200
         
         # ===== Manejor de errores
         except KeyError as ex: return {"status":"failed!","reason":f"The key {ex} was not in request."}, 400
@@ -84,10 +87,10 @@ class Endpoint_ESP32(Resource):
             data = dict(request.json)
             
             # ===== Obtencion de valores
-            rain_data        = data['rain']
-            temperature_data = data['temperature']
-            motion_data      = data['motion']
-            pressure_data    = data['pressure']
+            rain_data        = data.get('rain',[])
+            temperature_data = data.get('temperature',[])
+            motion_data      = data.get('motion',[])
+            pressure_data    = data.get('pressure',[])
 
             # ===== Guardar información
             db.insert_data('rain',rain_data)
@@ -107,12 +110,11 @@ class Endpoint_ESP32(Resource):
         try:
             # ===== Validacion de datos
             data = dict(request.json)
-            data_keys = data.keys()
             
             # ===== Obtencion de valores
-            tabla      = data['table']
-            start_date = data['start_date']
-            end_date   = data['end_date']
+            tabla      = data.get('table',None)
+            start_date = data.get('start_date',None)
+            end_date   = data.get('end_date',None)
 
             # ===== Procesamiento de solicitud
             db.delete_records(tabla,start_date,end_date)
