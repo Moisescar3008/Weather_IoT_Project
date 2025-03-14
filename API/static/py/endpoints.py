@@ -60,7 +60,7 @@ class Endpoint_ESP32(Resource):
     def get(self):
         try:
             # ===== Validacion de datos
-            data = dict(request.json)
+            data = dict(request.json) if request.is_json else dict()
             
             # ===== Obtencion de valores
             table = data.get('table',None)
@@ -84,7 +84,7 @@ class Endpoint_ESP32(Resource):
     def post(self):
         try:
             # ===== Validacion de datos
-            data = dict(request.json)
+            data = dict(request.json) 
             
             # ===== Obtencion de valores
             rain_data        = data.get('rain',[])
