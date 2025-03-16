@@ -1,16 +1,14 @@
 # Usa una imagen base ligera de Python
 FROM python:3.11-slim
 
-# Instala rclone y otras dependencias
+# Instala las dependencias necesarias, incluyendo curl, unzip, sqlite3 y otros paquetes
 RUN apt-get update && apt-get install -y \
-    curl unzip sqlite3 && \
+    curl unzip sqlite3 ca-certificates && \
     curl -fsSL https://rclone.org/install.sh | bash && \
     rm -rf /var/lib/apt/lists/*
 
-RUN echo "Waaaaaa"
-
 # Verifica si rclone se instaló correctamente
-RUN rclone --version
+RUN which rclone && rclone --version
 
 # Establece el directorio de trabajo en el contenedor
 WORKDIR /app
