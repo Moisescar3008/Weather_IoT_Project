@@ -4,8 +4,8 @@ FROM python:3.11-slim
 # Instala rclone y otras dependencias
 RUN apt-get update && apt-get install -y \
     curl unzip sqlite3 ca-certificates && \
-    curl -fsSL https://rclone.org/install.sh | bash && \
-    rm -rf /var/lib/apt/lists/*
+    curl -fsSL https://rclone.org/install.sh | bash && 
+    # rm -rf /var/lib/apt/lists/*
 
 # Verifica si rclone se instaló correctamente
 RUN which rclone && rclone --version
