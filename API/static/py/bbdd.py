@@ -1,5 +1,7 @@
 import sqlite3
 import os
+import subprocess
+from dotenv import load_dotenv
 from typing import List, Tuple, Any
 
 class DatabaseManager:
@@ -7,28 +9,57 @@ class DatabaseManager:
         """
         Inicializa la conexión con la base de datos y verifica la existencia de las tablas.
         """
-        # Asegura que la base de datos se ubique correctamente dentro del contenedor Docker
-        self.location_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-        self.db_path       = os.path.join(self.location_path, "static", "data", "database.db")
+        load_dotenv()
 
-        # Crear tablas si no existen
+        self.db_url = os.getenv("DB_URL")
+        self.drive_remote = os.getenv("RCLONE_REMOTE", "drive-perso:")  # Nombre del remote de rclone
+        self.db_filename = "database.db"
+        self.db_path = os.path.join(os.getcwd(), self.db_filename)
+
+        if not self.db_url:
+            raise ValueError("La variable de entorno 'DB_URL' debe estar definida.")
+
+        self.__download_db()
         self.__create_tables()
 
     # =============== MÉTODOS PRIVADOS ===============
+    def __download_db(self) -> None:
+        """
+        Descarga la base de datos desde Google Drive si no existe localmente.
+        """
+        if not os.path.exists(self.db_path):
+            print("Descargando la base de datos desde Google Drive...")
+            try:
+                subprocess.run(["rclone", "copy", f"{self.drive_remote}/{self.db_filename}", "./"], check=True)
+                print("Base de datos descargada correctamente.")
+            except subprocess.CalledProcessError as e:
+                print(f"Error al descargar la base de datos: {e}")
+
+    def __upload_db_to_drive(self) -> None:
+        """
+        Sube la base de datos a Google Drive después de cada modificación.
+        """
+        try:
+            subprocess.run(["rclone", "copy", self.db_path, self.drive_remote], check=True)
+            print("Base de datos subida a Google Drive correctamente.")
+        except subprocess.CalledProcessError as e:
+            print(f"Error al subir la base de datos: {e}")
+
     def __connect(self) -> sqlite3.Connection:
         """
         Crea y devuelve una conexión a la base de datos.
-
-        ### RETURNS:
-        sqlite3.Connection: Objeto de conexión a la base de datos.
         """
-        return sqlite3.connect(self.db_path, check_same_thread=False)
+        try:
+            return sqlite3.connect(self.db_path, timeout=10, check_same_thread=False)
+        except sqlite3.Error as e:
+            print(f"Error al conectar a la base de datos: {e}")
+            raise
 
     def __create_tables(self) -> None:
         """
         Crea las tablas necesarias si no existen en la base de datos.
         """
-        queries= [
+        queries = [
             """CREATE TABLE IF NOT EXISTS rain (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 rain_detected BOOLEAN NOT NULL,
@@ -61,34 +92,22 @@ class DatabaseManager:
         conn.commit()
         conn.close()
 
-    # =============== MÉTODOS PÚBLICOS ===============
+
+    # =============== MÉTODOS PUBLICOS ===============
     def execute_query(self, query: str, params: Tuple[Any, ...] = ()) -> None:
         """
-        Ejecuta una consulta SQL (INSERT, UPDATE, DELETE).
-
-        ### ARGS:
-        query (str): Consulta SQL a ejecutar.
-        params (Tuple[Any, ...]): Parámetros opcionales para la consulta.
-
-        ### RETURNS:
-        None
+        Ejecuta una consulta SQL (INSERT, UPDATE, DELETE) y sube la BD a Google Drive.
         """
         conn = self.__connect()
         cursor = conn.cursor()
         cursor.execute(query, params)
         conn.commit()
         conn.close()
+        self.__upload_db_to_drive()
 
     def fetch_all(self, query: str, params: Tuple[Any, ...] = ()) -> List[Tuple[Any, ...]]:
         """
         Ejecuta una consulta SELECT y devuelve todos los resultados.
-
-        ### ARGS:
-        query (str): Consulta SQL a ejecutar.
-        params (Tuple[Any, ...]): Parámetros opcionales para la consulta.
-
-        ### RETURNS:
-        List[Tuple[Any, ...]]: Lista de tuplas con los resultados obtenidos.
         """
         conn = self.__connect()
         cursor = conn.cursor()
@@ -96,17 +115,10 @@ class DatabaseManager:
         results = cursor.fetchall()
         conn.close()
         return results
-
+    
     def insert_data(self, table: str, data: List[dict]) -> None:
         """
-        Inserta un conjunto de datos en la tabla correspondiente.
-
-        ### ARGS:
-        table (str): Nombre de la tabla donde se insertarán los datos.
-        data (List[dict]): Lista de diccionarios con los datos a insertar.
-
-        ### RETURNS:
-        None
+        Inserta un conjunto de datos en la tabla correspondiente y sube la BD a Google Drive.
         """
         conn = self.__connect()
         cursor = conn.cursor()
@@ -123,23 +135,14 @@ class DatabaseManager:
             raise ValueError(f"Tabla '{table}' no válida")
 
         values = [tuple(entry.values()) for entry in data]
-
         cursor.executemany(queries[table], values)
         conn.commit()
         conn.close()
+        self.__upload_db_to_drive()
 
     def delete_records(self, table: str, start_date: str = None, end_date: str = None) -> None:
         """
-        Elimina registros de la tabla especificada. Puede eliminar todos los registros o solo los
-        que estén dentro de un rango de fechas específico.
-
-        ### ARGS:
-        table (str): Nombre de la tabla de la cual se eliminarán los registros.
-        start_date (str, opcional): Fecha de inicio en formato "yyyy-mm-dd". Solo se eliminarán registros desde esta fecha en adelante.
-        end_date (str, opcional): Fecha de fin en formato "yyyy-mm-dd". Solo se eliminarán registros hasta esta fecha.
-
-        ### RETURNS:
-        None
+        Elimina registros de la tabla especificada y sube la BD a Google Drive.
         """
         valid_tables = {"rain", "temperature", "motion", "pressure"}
         
@@ -164,4 +167,4 @@ class DatabaseManager:
         cursor.execute(query, params)
         conn.commit()
         conn.close()
-
+        self.__upload_db_to_drive()
