@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    ports:
+      - "10000:10000"
+    environment:
+      - RCLONE_CONF=${RCLONE_CONF}
+    volumes:
+      - .:/app
+    entrypoint: ["/entrypoint.sh"]
+    command: ["gunicorn", "-w", "4", "-b", "0.0.0.0:10000", "app:app"]
