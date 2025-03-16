@@ -11,3 +11,4 @@ services:
       - .:/app
     entrypoint: ["/entrypoint.sh"]
     command: ["gunicorn", "-w", "4", "-b", "0.0.0.0:10000", "app:app"]
+    tty: true  # Esto permite que el contenedor mantenga la terminal abierta para ver logs si es necesario

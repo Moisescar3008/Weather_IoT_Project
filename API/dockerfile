@@ -1,7 +1,7 @@
 # Usa una imagen base ligera de Python
 FROM python:3.11-slim
 
-# Instala las dependencias necesarias, incluyendo curl, unzip, sqlite3, ca-certificates y otros paquetes
+# Instala rclone y otras dependencias
 RUN apt-get update && apt-get install -y \
     curl unzip sqlite3 ca-certificates && \
     curl -fsSL https://rclone.org/install.sh | bash && \
@@ -31,5 +31,13 @@ echo "$RCLONE_CONF" > /root/.config/rclone/rclone.conf\n\
 chmod 600 /root/.config/rclone/rclone.conf\n\
 exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
 
+# Asegura que el directorio de instalación de rclone esté en el PATH
+# Añadir a ~/.bashrc o ~/.profile para que se cargue al iniciar la shell
+RUN echo "export PATH=\$PATH:/usr/local/bin" >> /root/.bashrc
+
 # Expone el puerto en el que correrá Flask
 EXPOSE 10000
+
+# Usa el script como punto de entrada y ejecuta la app
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:10000", "app:app"]
