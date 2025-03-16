@@ -1,5 +1,5 @@
 import sqlite3
-import os
+import os, sys
 import subprocess
 from dotenv import load_dotenv
 from typing import List, Tuple, Any
@@ -29,6 +29,7 @@ class DatabaseManager:
         """
         if not os.path.exists(self.db_path):
             print("Descargando la base de datos desde Google Drive...")
+            os.system('rclone --version')
             try:
                 subprocess.run(["rclone", "copy", f"{self.drive_remote}/{self.db_filename}", "./"], check=True)
                 print("Base de datos descargada correctamente.")
