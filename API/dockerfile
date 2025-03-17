@@ -1,14 +1,5 @@
-# docker build -t flask-api .
-# docker run -e "RCLONE_CONF=$(cat /home/diego/.config/rclone/rclone.conf)" -p 10000:10000 flask-api
-
 # Usa una imagen base ligera de Python
 FROM python:3.11-slim
-
-# Instala rclone y otras dependencias
-RUN apt-get update && apt-get install -y \
-    curl unzip sqlite3 && \
-    curl -fsSL https://rclone.org/install.sh | bash && \
-    rm -rf /var/lib/apt/lists/*
 
 # Establece el directorio de trabajo en el contenedor
 WORKDIR /app
@@ -22,18 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copia todo el contenido del proyecto al contenedor
 COPY . .
 
-# Crear el directorio de configuración de rclone
-RUN mkdir -p /root/.config/rclone
-
-# Script de inicialización para escribir el rclone.conf desde la variable de entorno
-RUN echo '#!/bin/sh\n\
-echo "$RCLONE_CONF" > /root/.config/rclone/rclone.conf\n\
-chmod 600 /root/.config/rclone/rclone.conf\n\
-exec "$@"' > /entrypoint.sh && chmod +x /entrypoint.sh
-
 # Expone el puerto en el que correrá Flask
 EXPOSE 10000
 
 # Usa el script como punto de entrada y ejecuta la app
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["python", "app.py"]
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:10000", "app:app"]

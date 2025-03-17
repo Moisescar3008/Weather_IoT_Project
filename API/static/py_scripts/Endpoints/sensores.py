@@ -1,8 +1,11 @@
+import os,sys
 from flask import request
 from flask_restful import Resource
 import paho.mqtt.client as mqtt
 
-from static.py.bbdd import DatabaseManager
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from bbdd import DatabaseManager
 
 db = DatabaseManager()
 

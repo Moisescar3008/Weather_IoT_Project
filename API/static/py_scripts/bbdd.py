@@ -1,5 +1,5 @@
 import sqlite3
-import os
+import os, sys
 import subprocess
 from dotenv import load_dotenv
 from typing import List, Tuple, Any
