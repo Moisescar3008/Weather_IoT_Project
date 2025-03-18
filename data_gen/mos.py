@@ -5,9 +5,9 @@ import json
 import paho.mqtt.client as mqtt
 
 # Configuración del broker
-BROKER = "localhost"  # Cambia esto si usas un broker remoto
-PORT = 1883
-TOPIC = "sensor/data"
+BROKER = "172.17.0.1"  # Cambia esto si usas un broker remoto
+PORT = 10001
+TOPIC = "esp32/data"
 INTERVALO = 5  # Intervalo de tiempo en segundos
 
 def generate_data():
@@ -46,6 +46,7 @@ def generate_data():
     motion_values.append(motion_data)
 
     values = {
+        'action':'post',
         'rain': rain_values,
         'temperature': temperature_values,
         'motion': motion_values,
@@ -68,7 +69,7 @@ if __name__  == "__main__":
         while True:
             data = generate_data()
             client.publish(TOPIC, data)
-            print(f"Datos enviados al tópico '{TOPIC}': {data}")
+            print(f"\nDatos enviados al tópico '{TOPIC}': {data}")
             time.sleep(INTERVALO)  # Espera antes de enviar nuevamente
     except KeyboardInterrupt:
         print("Interrumpido por el usuario. Desconectando...")
