@@ -1,0 +1,31 @@
+# ========== Comando para crear y levantar docker
+# docker compose up --build
+# ========== 
+# ========== Comando ingresar a ver logs de docker
+# docker exec -it mqtt_broker mosquitto_sub -h localhost -p 1883 -t "esp32/data"
+# ========== 
+# ========== Comando para enviar peticion
+# docker exec -it mqtt_broker mosquitto_pub -h localhost -p 1883 -t "esp32/data" -m '{"action": "post"}'
+# ========== 
+
+
+services:
+  api:
+    build: .
+    container_name: iot_api
+    environment:
+      - MQTT_BROKER=mosquitto
+    ports:
+      - "10000:10000"
+    depends_on:
+      - mosquitto
+
+  mosquitto:
+    image: eclipse-mosquitto
+    container_name: mqtt_broker
+    ports:
+      - "10001:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    environment:
+      - MQTT_BROKER_HOST=mosquitto

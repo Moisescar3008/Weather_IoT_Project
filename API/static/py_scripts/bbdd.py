@@ -11,40 +11,11 @@ class DatabaseManager:
         """
         load_dotenv()
 
-        self.db_url = os.getenv("DB_URL")
-        self.drive_remote = os.getenv("RCLONE_REMOTE", "drive-perso:")  # Nombre del remote de rclone
-        self.db_filename = "database.db"
-        self.db_path = os.path.join(os.getcwd(), self.db_filename)
+        self.location_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+        self.db_path = os.path.join(self.location_path, 'static','data', "IoT_db.db")
 
-        if not self.db_url:
-            raise ValueError("La variable de entorno 'DB_URL' debe estar definida.")
-
-        self.__download_db()
-        self.__create_tables()
-
+        
     # =============== MÉTODOS PRIVADOS ===============
-    def __download_db(self) -> None:
-        """
-        Descarga la base de datos desde Google Drive si no existe localmente.
-        """
-        if not os.path.exists(self.db_path):
-            print("Descargando la base de datos desde Google Drive...")
-            try:
-                subprocess.run(["rclone", "copy", f"{self.drive_remote}/{self.db_filename}", "./"], check=True)
-                print("Base de datos descargada correctamente.")
-            except subprocess.CalledProcessError as e:
-                print(f"Error al descargar la base de datos: {e}")
-
-    def __upload_db_to_drive(self) -> None:
-        """
-        Sube la base de datos a Google Drive después de cada modificación.
-        """
-        try:
-            subprocess.run(["rclone", "copy", self.db_path, self.drive_remote], check=True)
-            print("Base de datos subida a Google Drive correctamente.")
-        except subprocess.CalledProcessError as e:
-            print(f"Error al subir la base de datos: {e}")
-
     def __connect(self) -> sqlite3.Connection:
         """
         Crea y devuelve una conexión a la base de datos.
@@ -94,6 +65,16 @@ class DatabaseManager:
 
 
     # =============== MÉTODOS PUBLICOS ===============
+    def start_connection(self):
+        ''' 
+        '''
+        if not(os.path.isfile(self.db_path)):
+            print(f"No se encontró base de datos, creando nueva...")
+            with open(self.db_path,'w') as file: pass
+        
+        print(f"Se inicio la conexión con la BD... Validando tablas...")
+        self.__create_tables()
+
     def execute_query(self, query: str, params: Tuple[Any, ...] = ()) -> None:
         """
         Ejecuta una consulta SQL (INSERT, UPDATE, DELETE) y sube la BD a Google Drive.
@@ -103,7 +84,6 @@ class DatabaseManager:
         cursor.execute(query, params)
         conn.commit()
         conn.close()
-        self.__upload_db_to_drive()
 
     def fetch_all(self, query: str, params: Tuple[Any, ...] = ()) -> List[Tuple[Any, ...]]:
         """
@@ -138,7 +118,6 @@ class DatabaseManager:
         cursor.executemany(queries[table], values)
         conn.commit()
         conn.close()
-        self.__upload_db_to_drive()
 
     def delete_records(self, table: str, start_date: str = None, end_date: str = None) -> None:
         """
@@ -167,4 +146,3 @@ class DatabaseManager:
         cursor.execute(query, params)
         conn.commit()
         conn.close()
-        self.__upload_db_to_drive()
