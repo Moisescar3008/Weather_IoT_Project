@@ -156,7 +156,7 @@ class ESP32_MQTT(Resource):
     def on_message(self, client, userdata, msg):
         try:
             data = json.loads(msg.payload.decode())
-            print(f"📩 Mensaje recibido en '{msg.topic}': {data}")
+            print(f"Mensaje recibido en '{msg.topic}': {data}")
             action = data.get("action")
             
             if action == "post": response = self.post(data)
@@ -164,7 +164,7 @@ class ESP32_MQTT(Resource):
             
             client.publish(TOPIC_PUB, json.dumps(response))
         except Exception as ex:
-            print(f"❌ Error procesando mensaje: {ex}")
+            print(f"Error procesando mensaje: {ex}")
             client.publish(TOPIC_PUB, json.dumps({"status": "failed!", "reason": str(ex)}))
 
 
